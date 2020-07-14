@@ -1,0 +1,47 @@
+# SQL Exercise 2
+
+1. What range of dates are covered in the ecd table?
+
+2. Write a query to find the number of grant money awarded by year. In which year was the most grant money awarded?
+
+3. Overall, how many grant dollars has the state awarded? How many grant dollars has the state awarded per new job committed? Which type of project is the most "efficient" in terms of the number of grant dollars per new job committed?
+
+4. Which company has received the highest number of grants? How many total grant dollars has that company been awarded? How many new jobs did they commit to?
+
+5. How many companies have projects in multiple counties? Which company has investments in the most number of counties?
+
+6. Find all companies that have grants for both a Recruitment and an Expansion project.
+
+7. How many grant dollars have gone to each category of FJTAP, FIDP, and ED? Which receives the most on average per project?
+
+8. Run a query that shows all Tennessee counties and the number of grants awarded in those counties. Be sure to include counties that have not received any grants.
+How many Tennessee counties have received no ECD grants? What is the largest population of a county that has not received a grant? 
+
+9. How many grants went to counties whose population in 2016 was less than 10000? What was the largest amount for one of these grants and which company received it? What was the largest capital investment for one of these projects and which company made this investment?
+
+10. Which county receives the most grant dollars per resident? The least?
+
+11. Create a query which returns for each county, that county's name, its population in 2010, its population in 2016, the population change from 2010 to 2016, and the percent change in population from 2010 to 2016. 
+Which county experienced the highest growth in population from 2010 to 2016? Which experienced the highest percentage change in population from 2010 to 2016?
+How many counties experienced growth from 2010 to 2016? What percentage of counties?
+
+12. Which counties had the highest unemployment in December 2018? Which have the lowest in December 2018?
+On average across all counties in TN, how much higher was unemployment in December 2011 compared to December 2018?
+
+13. Then Tennessee Department of Economic and Community Development divides counties into "Urban" counties and "Rural" counties. The following 17 counties are those considered by TNECD to be Urban: Anderson, Blount, Bradley, Carter, Davidson, Hamblen, Hamilton, Knox, Loudon, Madison, Montgomery, Rutherford, Shelby, Sullivan, Sumner, Washington, Williamson.  
+
+    a. Find the average population of Urban counties and compare it to the average population of Rural counties.  
+
+    b. Compare the average unemployment in urban counties compared to rural counties in December 2011 and in December 2018.
+
+14. What is the biggest capital investment by a company in a county which had over 12% unemployment at the time of the investment?
+What is the biggest capital investment by a company in a county that had under 4% unemployment at the time of the investment?
+
+########################
+# Open-ended Questions #
+########################
+Use the data available to you in the database in whatever way you think is best in order to answer these questions. You may wish to run a query and then import the results into Python or R to help in your analysis.
+
+1. Do grant dollars seem to be equitably distributed? Is there any connection between grant dollars and change in unemployment?
+
+2. The TNECD puts counties into tiers (see https://tnecd.com/wp-content/uploads/2018/10/incentive-tier-map-20181.pdf). Can you find any connection between unemployment and/or population and the tier to which a county belongs. Does the amount of investment in a county seem to be related to that county's tier?
