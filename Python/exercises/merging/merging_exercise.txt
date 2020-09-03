@@ -1,0 +1,20 @@
+For this exercise, you have been given a dataset of Medicare Part D drug prescribers located in Tennessee. Your goal is to match the presciber to their county.
+
+For this task, you have been given three datasets:
+	1) tn_providers.csv: A filtered and sliced version of the dataset available from https://www.cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/Medicare-Provider-Charge-Data/PartD2017.
+
+	2) ZIP_COUNTY_032020.xlsx: A ZIP code to FIPS code crosswalk, obtained from https://www.huduser.gov/portal/datasets/usps_crosswalk.html.
+
+	3) ssa_fips_state_county2017.csv: A FIPS code to county name crosswalk, obtained from https://data.nber.org/data/ssa-fips-state-county-crosswalk.html.
+
+Step 1: Read in tn_providers.csv and ZIP_COUNTY_032020.xlsx into pandas DataFrame. Note that the second file is an Excel file, so you may want to look into the pandas read_excel function.
+
+Step 2: Merge the FIPS code (contained in the COUNTY column) from the ZIP_COUNTY file into the providers DataFrame. Check that you end with the same number of rows that you started. You will likely see that a single ZIP code can be associated with multiple FIPS codes. To resolve this, keep only the FIPS code with the highest TOT_RATIO for a given ZIP code. (The TOT_RATIO is the ratio of all addresses in a ZIP code that are contained in that FIPS code.)
+
+Step 3: You will notice that some providers cannot be matched with a FIPS code. For how many does this occur? For which ZIP codes is this true?
+
+Step 4: Read in ssa_fips_state_county2017.csv into a DataFrame. Merge the county and state columns from it into the provider DataFrame. Check to ensure that you still have the correct number of rows after the merge.
+
+Step 5: The original provider dataset consisted of only rows where the provider state was listed as TN. Check and see if this is also true of the state column that you just merged in.
+
+Step 6: Finally, clean up the final result so that the only new column is the county name column. That is, remove any of the intermediate or duplicate columns that were merged in throughout the process.
