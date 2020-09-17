@@ -4,20 +4,17 @@
  1.	Download two CSV files and place them in the `data` folder of your local Data Question 1 repository:
     
     a.	Gross Domestic Product (GDP) per capita: 
-<p align="center">
 [http://data.un.org/Data.aspx?d=WDI&f=Indicator_Code%3aNY.GDP.PCAP.PP.KD](http://data.un.org/Data.aspx?d=WDI&f=Indicator_Code%3aNY.GDP.PCAP.PP.KD)
-</p>  
-        * **DO NOT APPLY ANY FILTERS**
-        * rename the file to gdp_per_capita.csv
-        * open it with a text editor (not Excel) and take a look
+
+    * **DO NOT APPLY ANY FILTERS**
+    * rename the file to gdp_per_capita.csv
+    * open it with a text editor (not Excel) and take a look
     
     b.	Percentage of Individuals using the Internet: 
-<p align="center">
 [http://data.un.org/Data.aspx?d=ITU&f=ind1Code%3aI99H](http://data.un.org/Data.aspx?d=ITU&f=ind1Code%3aI99H)
-</p>  
-        * **DO NOT APPLY ANY FILTERS**
-        * rename the file to internet_use.csv
-        * open it with a text editor (not Excel) and take a look
+    * **DO NOT APPLY ANY FILTERS**
+    * rename the file to internet_use.csv
+    * open it with a text editor (not Excel) and take a look
 
 2. Create a Jupyter Notebook in the `notebooks` folder and name it `UN_Data_Exploration`.
     *  You are likely to get errors along the way. When you do, read the errors to try to understand what is happening and how to correct it.
@@ -32,10 +29,6 @@
     `import matplotlib.pyplot as plt` 
     
     `import seaborn as sns`
-    
-    `import scipy.stats as stats`
-    
-    `import statsmodels.api as sm`
     
     Keep all imports in this cell at the top of your notebook.
     
@@ -87,14 +80,14 @@
 
 25. What is the first year that has a nonzero internet users percentage reported? What is the general trend in internet users percentage over the years. Pick a visualization that you think illustrates this trend well.
 
-26. Merge `gdf_df` and `internet_df` (on Country and Year) into a single DataFrame named `gdp_and_internet_use`. Keep only countries and years that appear in both tables.  
+26. Merge `gdp_df` and `internet_df` (on Country and Year) into a single DataFrame named `gdp_and_internet_use`. Keep only countries and years that appear in both tables.  
 **Difficult Bonus:** Do not attempt this part until you have completed all other portions of the data question. Some countries have slightly different names in the internet use and gdp dataframes. For example, the Central African Republic is "Central African Republic" in the gdp dataframe and "Central African Rep." in the internet use dataframe. Find as many instances like this as you can and resolve them so that when merging you keep the maximum number of countries possible.
 
 27.	Look at the first five rows of your new data frame to confirm it merged correctly. Also, check the last five rows to make sure the data is clean and as expected.
 
 28. Create a new DataFrame, named `gdp_and_internet_use_2014` by extracting data for the year 2014 from `gdp_and_internet_use`. What is the mean internet users percentage in 2014? How many countries have at least 90% internet users in 2014?
 
-29. Find the countries that had the top 3 largest GDP per capita figures for 2014. Create a seaborn FacetGrid showing the change in internet user percentage over time for these five countries. Each individual figure in the facet grid will represent a single country.  What trends do you notice?
+29. Find the countries that had the top 3 largest GDP per capita figures for 2014. Create a seaborn FacetGrid showing the change in internet user percentage over time for these three countries. Each individual figure in the facet grid will represent a single country.  What trends do you notice?
 
 30. Create a scatter plot of Internet Use vs GDP per Capita for the year 2014. What do you notice?
 
@@ -106,5 +99,5 @@
 
 
 ### Solo Exploration and Presentation:
-1. Choose and download another data set from the UN data [http://data.un.org/Explorer.aspx](http://data.un.org/Explorer.aspx) to merge with your data and explore. Prepare a short (< 5 minute) presentation of your findings. Report any interesting correlations you find. Include visualizations and consider adding interactivity with `ipywidgets`. This presentation can be done either in a Jupyter Notebook or using another presentation software, such as PowerPoint. (Check out [Jupyter Slides](https://medium.com/learning-machine-learning/present-your-data-science-projects-with-jupyter-slides-75f20735eb0f) if you have time. This allows you to turn your jupyter notebook into a slideshow.
-2.    If time allows, check out the plotly library to add additional interativity to your plots. [https://plotly.com/python/plotly-express/)](https://plotly.com/python/plotly-express/).
+1. Choose and download another data set from the UN data [http://data.un.org/Explorer.aspx](http://data.un.org/Explorer.aspx) to merge with your data and explore. Prepare a short (< 5 minute) presentation of your findings. Report any interesting correlations you find. Include visualizations and consider adding interactivity with `ipywidgets`. This presentation can be done either in a Jupyter Notebook or using another presentation software, such as PowerPoint. Check out [Jupyter Slides](https://medium.com/learning-machine-learning/present-your-data-science-projects-with-jupyter-slides-75f20735eb0f) if you have time. This allows you to turn your jupyter notebook into a slideshow.
+2.    If time allows, check out the plotly library to add additional interativity to your plots. [https://plotly.com/python/plotly-express/](https://plotly.com/python/plotly-express/).
