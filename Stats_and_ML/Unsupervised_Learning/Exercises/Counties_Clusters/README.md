@@ -6,12 +6,14 @@ In this exercise, you will apply unsupervised learning techniques to a dataset o
 
 2. PCA clustering do not work if you have observations with missing values. After choosing which variables to drop, you'll need to decide what to do with any counties that are still missing values. The easiest solution is to drop those observations. Drop any rows that contain missing values. **Bonus:** If time allows, come back to this part and try imputing missing values to see if it changes your final result.
 
-3. Apply PCA to the remaining data. How much of the overall variance do the first two principal components capture? How many are needed to capture 80% of the variance? 90%?
+3. Three of the variables are strongly correlated with the population size of a county (Demographics_Population, Some_college_Population, and Unemployment_Labor_Force). You might consider dropping these variables or seeing the difference in results if you include or exclude them.
 
-4. Look at the scatterplot of the projection using the first two principal components. Do any observations stand out? Figure out which counties the observations belong to.
+4. Apply PCA to the remaining data. How much of the overall variance do the first two principal components capture? How many are needed to capture 80% of the variance? 90%?
 
-5. Apply k-means clustering to the dataset. Make sure that you scale the data before clustering. Look at a scree plot to determine a good number of clusters to use. 
+5. Look at the scatterplot of the projection using the first two principal components. Do any observations stand out? Figure out which counties the observations belong to.
 
-6. Take a closer look at the clustering on the Tennessee counties. Do the results you get make sense?
+6. Apply k-means clustering to the dataset. Make sure that you scale the data before clustering. Look at a scree plot to determine a good number of clusters to use. 
 
-7. Look at the average values of your variables per cluster. What do you notice?
+7. Take a closer look at the clustering on the Tennessee counties. Do the results you get make sense?
+
+8. Look at the average values of your variables per cluster. What do you notice?
