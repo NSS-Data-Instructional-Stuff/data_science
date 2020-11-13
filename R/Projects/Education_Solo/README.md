@@ -1,8 +1,6 @@
 ## Tidyverse Solo Exercise
 
-In this project, you'll practice working with data using the tidyverse libraries. You will be using the `districts.csv` dataset used in the tidyverse workshop, but you will also use another dataset downloaded from the Tennessee Department of Education. 
-
-Create an RMarkdown file to answer the following questions.
+In this project, you'll practice working with data using the tidyverse libraries. Create an RMarkdown file to answer the following questions.
 
 1. Read in `districts.csv` into a tibble named `districts`. How many rows and columns does it contain?
 
@@ -38,7 +36,7 @@ Create an RMarkdown file to answer the following questions.
 
 17. Add the regression line to your scatterplot using `geom_smooth` with `method='lm'`. How do you feel about the regression line after seeing it plotted on the scatterplot?
 
-18. Read in the school-level testing data for 2014, available [here](https://www.tn.gov/content/dam/tn/education/data/data_2014_school_base.xlsx). You might find the readxl library useful for this task. If you use this library, be sure to look at the `na` argument for the `read_excel` function **before attempting to read in the data**.
+18. Read in the school-level testing data for 2014, available [here](https://www.tn.gov/content/dam/tn/education/data/data_2014_school_base.xlsx). You might find the readxl library useful for this task. If you use this library, be sure to look at the `na` argument for the `read_excel` function.
 
 19. How many schools have at least 20 percent of students below bsc for Algebra I? Which districts do these schools belong to?
 
