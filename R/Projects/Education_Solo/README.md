@@ -16,7 +16,7 @@ In this project, you'll practice working with data using the tidyverse libraries
 
 7. What is the mean graduation rate across all districts? What might be wrong with using just the regular mean to assess average graduation rates?
 
-8. Redo number 7 but do a weighted average (`weighted.mean`) graduation across all districts. How much does this change your answer? Can you explain using the data the reason for the big change from using the mean?
+8. Redo number 7 but do a weighted average (`weighted.mean`) graduation across all districts, weighing by enrollment. How much does this change your answer? Can you explain using the data the reason for the big change from using the mean?
 
 9. Create a boxplot showing enrollment rates per region. Does anything stand out?
 
