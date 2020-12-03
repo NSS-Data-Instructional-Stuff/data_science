@@ -1,0 +1,186 @@
+---
+title: "Principal Components Analysis (PCA), Part 2"
+output:
+  html_document:
+    df_print: paged
+---
+
+In the previous notebook, we saw how we could use the prcomp function in order to find the optimal angle to project onto in terms of reconstuction error and amount of variance captured.
+
+In this notebook, we'll first look at another way to interpret what we found.
+
+```{r}
+head(iris)
+```
+
+In this notebook, we'll focus on just two of the variables, the petal length and petal width.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+iris_pca <- iris %>% 
+  select(Petal.Length, Petal.Width) %>% 
+  prcomp()
+```
+
+Recall that PC1 is the vector determining the optimal line.
+```{r}
+iris_pca$rotation
+```
+
+A fact from linear algebra is that to project onto this line, we need only take the dot product of our original point with this vector. Since we are projecting onto the line that passes through the mean of each variable, we also need to subtract these means prior to projecting. The dot product will give us the distance along this line from the point determined by the two means. This projection is given by:
+$$0.9217777 \cdot (\text{Centered Petal.Length}) + 0.3877188 \cdot (\text{Centered Petal.Width})$$
+Observing this, we can interpret the projection as a "mix" of our old (centered) variables.
+
+The new variable represents the (signed) distance of the projection from the point determined by the two means.
+```{r}
+optimal_angle = 180 / pi * atan(iris_pca$rotation['Petal.Width', 'PC1'] / iris_pca$rotation['Petal.Length', 'PC1'])
+
+angle = optimal_angle
+
+# For graphing purposes, we need to know the slope of this line
+slope = sin(angle * pi / 180) / cos(angle * pi / 180)
+
+# A bit of linear algebra to find the projections
+iris_projection <- iris %>% 
+    as_tibble() %>% 
+    mutate(projection = (Petal.Length - mean(iris$Petal.Length)) * cos(angle * pi / 180)  + (Petal.Width - mean(iris$Petal.Width)) * sin(angle * pi / 180),
+           proj_x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), proj_y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180))
+
+iris_projection %>% 
+    ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
+    geom_abline(slope = slope, intercept = mean(iris$Petal.Width) - slope*mean(iris$Petal.Length)) +
+    geom_segment(aes(x = Petal.Length, y = Petal.Width, xend = proj_x, yend = proj_y)) +
+    geom_point(shape = 21, color = 'black', size = 2) +
+    coord_fixed(ratio = 1)
+```
+
+The projection values are contained in the x attribute. Here, we are interested in the PC1 column.
+```{r}
+head(iris_pca$x)
+```
+
+Now, let's look at the summary:
+```{r}
+summary(iris_pca)
+```
+The PCA summary shows how much of the original variance in the dataset is captured by our projection. This shows that the PC1 (the projection that we used) captures 99.02% of the variability. Here, variability means the sum of the covariances of the original dataset, which we can see from the covar function.
+
+```{r}
+covar <- iris %>% 
+  select(Petal.Width, Petal.Length) %>% 
+  cov()
+
+covar
+```
+The total variance is the sum of the diagonal entries.
+```{r}
+covar[1,1] + covar[2,2]
+```
+
+We can access the projection via the x attribute. If we calculate the variance in the projection along PC1 with the original variance, we get that 99.02% figure.
+```{r}
+var(iris_pca$x[,'PC1']) / (covar[1,1] + covar[2,2])
+```
+
+What about PC2? First, let's plot it on our scatterplot.
+```{r}
+iris_projection %>% 
+  ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC1'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC1']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed"), size = 2) +
+  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC2'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC2']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed"), size = 2) +
+  coord_fixed(ratio = 1)
+```
+It turns out that this vector is perpendicular to PC1. Projecting along this vector will account for the remaining variance in our dataset.
+
+We can use PC1 and PC2 as a new basis for the coordinate system.
+
+```{r}
+iris_pca$x %>% 
+  as_tibble() %>% 
+  add_column(Species = iris$Species) %>% 
+  ggplot(aes(x = PC1, y = PC2, fill = Species)) + 
+  geom_hline(yintercept = 0, linetype = 'dashed') +
+  geom_vline(xintercept = 0, linetype = 'dashed') +
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
+```
+
+One nice property about PCA is that our new variables are uncorrelated:
+```{r}
+iris_pca$x %>% 
+  cov()
+```
+
+Now, let's consider all of our variables. We have 4 quantitative variables to work with. We can visualize the dataset using pairs of these variables.
+
+For example, 
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Sepal.Length, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
+```
+
+Or another:
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Sepal.Width, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
+```
+
+By changing the pair of variables we chose, we get different views of the dataset. But did we choose the "best" pair of variables to understand our dataset. What if we had a few hundred variables? It would be time-consuming to try and sort through all possible pairs. 
+
+Luckily, we already have to tools needed to find the "best" 2D representation of our data - pca!
+
+```{r}
+iris_full_pca <- prcomp(iris %>% select(-Species))
+summary(iris_full_pca)
+```
+We get a similar summary as before. We can see that using just the first two principal components will let us capture 97.769% of the total variation in the dataset.
+
+Let's see what this projection looks like and how well we can distinguish the species.
+```{r}
+iris_full_pca$x %>% 
+  as_tibble() %>% 
+  mutate(Species = iris$Species) %>% 
+  ggplot(aes(x = PC1, y = PC2, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
+```
+
+To understand what what composes each of our new variables, we can look at the rotation attribute:
+```{r}
+iris_full_pca$rotation
+```
+This says to find the projection onto the first prinicipal component, the formula is 
+$$0.36138659*(\text{Centered Sepal.Length}) - 0.08452251*(\text{Centered Sepal.Width}) + 0.85667061*(\text{Centered Petal.Length}) + 0.35828920*(\text{Centered Petal.Width})$$
+
+What we can see is that the first principal component is determined by an approximately equal mix of sepal length, petal length, and petal width.
+```{r}
+tibble(coefficient = iris_full_pca$rotation[,1], variable = names(iris_full_pca$rotation[,1])) %>% 
+  ggplot(aes(x = variable, y = coefficient)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(title = "First Principal Component Coefficients")
+```
+
+One final note: If dealing with variables that are measures on vastly different scales, you should consider not just centering your variables prior to PCA but also scaling so that they have unit variance. This is an option for the prcomp function. This will change the results, but it will prevent one of the variables from dominating just because it is on a larger scale than the other variables.
+
+```{r}
+iris_pca_scaled <- iris %>% 
+  select(-Species) %>% 
+  prcomp(scale = TRUE)
+```
+
+```{r}
+summary(iris_pca_scaled)
+```
+
+```{r}
+iris_pca_scaled$rotation
+```
