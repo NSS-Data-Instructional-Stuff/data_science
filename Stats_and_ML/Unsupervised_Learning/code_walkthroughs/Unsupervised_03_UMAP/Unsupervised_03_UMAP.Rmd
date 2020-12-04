@@ -1,0 +1,82 @@
+---
+title: "UMAP"
+output: html_notebook
+---
+
+The MNIST dataset is a popular dataset for data science and machine learning tasks. It consists of handwritten digits.
+
+We'll be working with a subset of 1000 images from this dataset.
+```{r}
+library(tidyverse)
+mnist <- read_csv('data/mnist.csv', n_max = 5000)
+```
+
+The dataset we are working with consists of 28 pixel x 28 pixel grayscale images. Each column corresponds to a pixel, and there is a column indicating the label (what digit the image is).
+
+For example, the first element of our dataset is a 1:
+```{r}
+im <- matrix(mnist[1,] %>% select(-label) %>% unlist(), nrow = 28, byrow = FALSE)
+
+for (i in 1:nrow(im)){
+  im[i,] = rev(im[i,])
+}
+par(pty = "s")
+image(1:28, 1:28, im, col = gray(rev((0:255)/255)))
+```
+
+In our sample, we have a pretty even distribution of digits.
+```{r}
+mnist %>% 
+  group_by(label) %>% 
+  count()
+```
+
+What if we want to project this dataset down to two dimension so that we can plot it. We can try using principal components analysis.
+```{r}
+mnist_pca <- mnist %>% 
+  select(-label) %>% 
+  prcomp()
+```
+
+```{r}
+library(plotly)
+
+p <- mnist_pca$x %>% 
+  as_tibble() %>% 
+  mutate(label = as.factor(mnist$label)) %>% 
+  ggplot(aes(x = PC1, y = PC2, color = label)) +
+  geom_point(size = 0.25)
+
+ggplotly(p)
+```
+
+We end up with a big blob of points without much structure. Perhaps there was more high-dimensional structure that we could not capture with just these two dimensions. Let's check and see how much of the variance we were able to capture in the first two components.
+
+```{r}
+100 * sum(mnist_pca$sdev[c(1,2)]) / sum(mnist_pca$sdev)
+```
+Unfortunately, were able to capture less than 5 percent of the total variation in the first two principal components.
+
+```{r}
+library(uwot)
+
+mnist_umap <- mnist %>% 
+  select(-label) %>% 
+  umap()
+```
+
+```{r}
+p <- mnist_umap %>% 
+  as_tibble() %>% 
+  mutate(label = as.factor(mnist$label)) %>% 
+  ggplot(aes(x = V1, y = V2, color = label)) +
+  geom_point(size = 0.25) +   
+  guides(colour = guide_legend(override.aes = list(size=2)))
+
+ggplotly(p)
+```
+
+```{r}
+mnist_umap %>% 
+  saveRDS('data/mnist_umap.RDS')
+```
