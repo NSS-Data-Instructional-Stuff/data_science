@@ -1,0 +1,178 @@
+---
+title: "K-Means Clustering"
+output: html_notebook
+---
+
+In this notebook, we will apply the K-means clustering algorithm to the dataset from the Department of Education.
+
+```{r}
+library(tidyverse)
+
+districts <- read_csv('data/districts.csv')
+```
+The first thing I need to do is to remove the State of Tennessee row.
+
+```{r}
+districts <- districts %>% 
+  filter(system_name != 'State of Tennessee')
+```
+
+K-means doesn't work when there are missing values. First, let's see which columns have a lot of missing values.
+
+```{r}
+districts %>% summarise_all(funs(sum(is.na(.))))
+```
+
+I have a few choices to make now. I could drop columns that have a lot of missing values. Or I could just drop rows that have missing values. If I wanted to try and keep all of the districts in the dataset, I might even try imputing the missing values. I'm going to go with the simplest route and just drop any rows that have missing values. Notice that this method loses 33 districts.
+
+```{r}
+districts <- districts %>% 
+  drop_na()
+```
+
+K-means clustering can be done in R using the kmeans() function from the stats library. You do not need to load any external libraries to use this function.
+
+Notice that we should center and scale our data prior to clustering. The k-means algorithm calculates distances, so if we want all variables to have equal weight, we should standardize them. This can be accomplished using the `scale` function, which centers and scales each variable.
+
+Let's start by looking for 2 clusters.
+
+```{r}
+district_clusters <- districts %>%
+  select(-c(system, system_name, region)) %>%      # Remove non-numeric columns
+  scale() %>%                                      # Center and scale
+  kmeans(centers = 2)                              # Find 2 clusters
+```
+
+In order to be able to visualize the result, we'll use PCA to project down to two dimensions.
+
+```{r}
+districts_pca <- districts %>% 
+  select(-c(system, system_name, region)) %>% 
+  prcomp(center = TRUE, scale = TRUE)
+```
+
+
+```{r}
+districts_projection <- districts_pca$x %>% 
+  as_tibble() %>% 
+  select(PC1, PC2) %>% 
+  mutate(system_name = districts$system_name)
+
+districts_projection %>% 
+  mutate(cluster = as.factor(district_clusters$cluster)) %>%
+  ggplot() +
+  geom_point(aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(data = district_clusters$centers %*% districts_pca$rotation[,1:2] %>% as_tibble(),
+             aes(x = PC1, y = PC2), shape = 4, stroke = 2) 
+```
+
+To see the total within-cluster sum of squares, we can access tot.withinss.
+```{r}
+district_clusters$tot.withinss
+```
+
+Let's try 3 clusters.
+```{r}
+district_clusters <- districts %>%
+  select(-c(system, system_name, region)) %>%   
+  scale() %>%                                      
+  kmeans(centers = 3)  
+
+districts_projection %>% 
+  mutate(cluster = as.factor(district_clusters$cluster)) %>%
+  ggplot() +
+  geom_point(aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(data = district_clusters$centers %*% districts_pca$rotation[,1:2] %>% as_tibble(),
+             aes(x = PC1, y = PC2), shape = 4, stroke = 2) 
+```
+
+```{r}
+district_clusters$tot.withinss
+```
+
+What about 4?
+```{r}
+district_clusters <- districts %>%
+  select(-c(system, system_name, region)) %>%   
+  scale() %>%                                      
+  kmeans(centers = 4)  
+
+districts_projection %>% 
+  mutate(cluster = as.factor(district_clusters$cluster)) %>%
+  ggplot() +
+  geom_point(aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(data = district_clusters$centers %*% districts_pca$rotation[,1:2] %>% as_tibble(),
+             aes(x = PC1, y = PC2), shape = 4, stroke = 2)
+```
+
+```{r}
+district_clusters$tot.withinss
+```
+
+In order to determine how many clusters to use, we can plot the total within-cluster sum of squares over a range of different numbers of clusters and look for an "elbow".
+
+```{r}
+set.seed(123)
+
+max_clusters = 20
+
+ss = vector(length = max_clusters)
+for (i in 1:max_clusters){
+  district_clusters <- districts %>%
+    select(-c(system, system_name, region)) %>%   
+    scale() %>%                                      
+    kmeans(centers = i) 
+  ss[i] <- district_clusters$tot.withinss
+}
+
+wss <- tibble(clusters = 1:max_clusters, wss = ss)
+
+wss %>% ggplot() +
+  geom_point(aes(x = clusters, y = wss)) +
+  geom_line(aes(x = clusters, y = wss)) +
+  scale_x_continuous(breaks = 1:max_clusters) +
+  labs(title = "K-Means Clustering Results", x = "Number of Clusters", y = "Within-Cluster Total Sum of Squares")
+```
+After looking at this plot, I am going to go with 8 clusters.
+
+```{r}
+district_clusters <- districts %>%
+    select(-c(system, system_name, region)) %>%   
+    scale() %>%                                      
+    kmeans(centers = 8) 
+```
+
+Let's inspect our final clustering.
+
+```{r}
+districts_projection %>% 
+  mutate(cluster = as.factor(district_clusters$cluster)) %>%
+  ggplot() +
+  geom_point(aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(data = district_clusters$centers %*% districts_pca$rotation[,1:2] %>% as_tibble(),
+             aes(x = PC1, y = PC2), shape = 4, stroke = 2)
+```
+
+```{r}
+districts <- districts %>%
+  add_column(cluster = district_clusters$cluster)
+
+districts %>% 
+  group_by(cluster) %>% 
+  summarize(num_districts = n())
+```
+
+Finally, we get get a profile on our clusters.
+```{r}
+districts %>% 
+  group_by(cluster) %>% 
+  select(-c(system, system_name, region)) %>% 
+  summarize_at(vars(-enrollment), funs(weighted.mean(.,enrollment)))
+```
+
+```{r}
+districts %>% 
+  filter(cluster == 5) %>% 
+  View()
+```
+
