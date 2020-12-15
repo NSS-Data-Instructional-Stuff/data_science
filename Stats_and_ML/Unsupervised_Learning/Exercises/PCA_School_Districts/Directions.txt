@@ -1,0 +1,8 @@
+1. Read in the data from districts.csv. Remove the row corresponding to the whole State of Tennessee.
+2. In this dataset, there are many missing values. Which variables have the most missing values? How many schools will you lose if you drop any district what has any missing values?
+3. You'll need to decide what to do about missing values. You can either drop the columns with missing values or drop rows with the missing values (or some combination of the two). Make sure to note which one you choose to do, as this will influence your final results.
+4. Run pca on the dataset first with centering but not scaling (which is the default when using the prcomp function). Then redo it where you center and scale the variables. What do you notice about the results? Keep the results where centering and scaling were used.
+5. What percentage of the total variance in the dataset is covered by the first two principal components?
+6. Take a look at the weights of the variables making up the first two principal components. What do you notice?
+7. Create a scatterplot of the dataset projected onto the first two principal components. Investigate anything that stands out.
+8. You may have noticed that Davidson County and Shelby County land quite close to each other on your plot. This may be due to the fact that they are the two largest districts. Redo your PCA projects but this time remove the enrollment variable. How does this change the results?
