@@ -5,103 +5,111 @@ output:
     df_print: paged
 ---
 
-In this notebook, we will explore principal components analysis using the iris dataset. This dataset consists of measurements of 4 components of 3 different species of iris and is included in base R.
+In this notebook, we will explore principal components analysis using the iris dataset. This dataset consists of measurements of 4 components of 3 different species of iris and is included in base R. It is a popular dataset for machine learning examples.
 ```{r}
 head(iris)
 ```
 
-Let's create some plots to get an understanding of our dataset. We can start by picking two variables and creating a scatterplot. We'll color by species to see how well we can distinguish the species on the basis of these measurements.
+In this notebook, we'll focus on just two of the variables, the petal length and petal width.
 
 ```{r}
 library(tidyverse)
 ```
 
-Let's first look at the Petal.Length and Petal.Width variables.
+Let's start by creating a scatterplot of the two variables:
 ```{r}
 iris %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-  geom_point()
+  ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
 ```
-It appears that these variables are strongly correlated. Let's check it. 
+It appears that these variables are strongly correlated. Let's see how strong this correlation is.
 ```{r}
 iris %>% 
   select(Petal.Length, Petal.Width) %>% 
   cor()
 ```
 
-In a way, Petal.Length and Petal.Width are redundant. Since they are so correlated, we don't really need both in order to understand the dataset.
+Since they are so strongly correlated, Petal.Length and Petal.Width are almost redundant. If we know, for example, the petal length, then we can make a pretty good guess about the petal width. Can we get away with a simpler representation of our dataset so that we don't need to store both of these variables?
 
-One option is to discard one of them. However, in doing so, we will lose out on some information since they are not completely correlated, but only strongly so. If we were to discard the Petal.Width variable, it would be like we were projecting onto a line (determined by Petal.Length).
+One option is to completely discard one of them. However, in doing so, we will lose out on some information since they are not perfectly correlated, but only strongly so. If we were to discard the Petal.Width variable, it would be like we were projecting onto a horizontal line.
 ```{r}
 iris %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-  geom_point() +
+  ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
   geom_hline(yintercept = mean(iris$Petal.Width)) +
-  geom_segment(aes(x = Petal.Length, y = Petal.Width, xend = Petal.Length, yend = mean(Petal.Width)))
+  geom_segment(aes(x = Petal.Length, y = Petal.Width, xend = Petal.Length, yend = mean(Petal.Width))) +
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
 ```
 
 ```{r}
 iris %>% 
-  ggplot(aes(color = Species)) + 
+  ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
   geom_hline(yintercept = mean(iris$Petal.Width)) +
-  geom_point(aes(x = Petal.Length, y = mean(Petal.Width)))
+  geom_point(aes(x = Petal.Length, y = mean(Petal.Width), fill = Species), shape = 21, color = 'black', size = 2)
 ```
 
 There are a couple of potential problems with this.
 
 First, the "reconstruction" distance is quite large. Points with large or small values for Petal.Length end up quite far from where they started.
-We'll define the error as the distance from the original point to its projection.
+We'll define the reconstruction error of this projection as the distance from the original point to its projection. Note that we are projecting onto the line that goes through the mean of each variable.
 ```{r}
 iris %>% 
-  summarize(avg_error = mean(Petal.Width^2))
+  summarize(reconstruction_error = mean((Petal.Width - mean(iris$Petal.Width))^2))
 ```
 
+A second potential problem is that points that started far from each other end up close to each other. That is, we are losing some of the information (variance) in the original dataset.
 
-Second, points that started far from each other end up quite close to each other. That is, we are losing some of the information (variance) in the original dataset.
-
-Let's compare the variance in Petal.Length to the total variance in the dataset.
+Let's compare the variance in Petal.Length (our one variable that remains) to the total variance in the dataset.
 ```{r}
 100 * var(iris$Petal.Length) / (var(iris$Petal.Length) + var(iris$Petal.Width))
 ```
 
-
-Can we do better? An alternative is to combine them in some way some way into a new feature. One option we can try is to mix equal parts of the two variables. This is essentially the same as projecting (the centered points) onto the line $$y = x$$.
+Can we do better? Maybe we can find a better line to project onto. The data shows an upward trend, so we can try projecting onto the line y = x.
 
 ```{r}
+# The angle of the line in degrees
 angle = 45
 
+# For graphing purposes, we need to know the slope of this line
 slope = sin(angle * pi / 180) / cos(angle * pi / 180)
 
+# A bit of linear algebra to find the projections
 iris_projection <- iris %>% 
     as_tibble() %>% 
     mutate(projection = (Petal.Length - mean(iris$Petal.Length)) * cos(angle * pi / 180)  + (Petal.Width - mean(iris$Petal.Width)) * sin(angle * pi / 180),
            proj_x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), proj_y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180))
 
 iris_projection %>% 
-    ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-    geom_point() +
+    ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
     geom_abline(slope = slope, intercept = mean(iris$Petal.Width) - slope*mean(iris$Petal.Length)) +
     geom_segment(aes(x = Petal.Length, y = Petal.Width, xend = proj_x, yend = proj_y)) +
+    geom_point(shape = 21, color = 'black', size = 2) +
     coord_fixed(ratio = 1)
 ```
-Let's compare the reconstruction error to what we had before:
-```{r}
-iris_projection %>% 
-  summarize(avg_error = mean(sqrt((Petal.Length - proj_x)^2 + (Petal.Width - proj_y)^2)))
-```
 
-Now, let's see how much of the original variance we captured.
 ```{r}
 iris_projection %>% 
     ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
     geom_abline(slope = slope, intercept = mean(iris$Petal.Width) - slope*mean(iris$Petal.Length)) +
-    geom_point(aes(x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180))) +
-    coord_fixed(ratio = 1)
+    geom_point(aes(x = proj_x, y = proj_y, fill = Species), shape = 21, color = 'black', size = 2) +
+    coord_fixed(ratio = 1, xlim = c(0, 7))
 ```
 
+First, let's see how much of the original variance we captured.
 ```{r}
 100 * var(iris_projection$projection) / (var(iris$Petal.Length) + var(iris$Petal.Width))
 ```
+We do a bit better than we did before.
+
+
+Now, let's compare the reconstruction error to what we had before:
+```{r}
+iris_projection %>% 
+  summarize(reconstruction_error = mean(sqrt((Petal.Length - proj_x)^2 + (Petal.Width - proj_y)^2)))
+```
+We actually did a bit worse on this metric.
+
 Can we do better? Try adjusting the angle value above to try and find a better solution.
 
 
@@ -113,34 +121,43 @@ iris_pca <- iris %>%
   prcomp()
 ```
 
-
 We can see the vector determining this line using the rotation attribute. The vector that we care about is given by PC1.
 ```{r}
 iris_pca$rotation
 ```
 
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  geom_segment(aes(x = mean(Petal.Length), y = mean(Petal.Width), xend = mean(Petal.Length) + iris_pca$rotation['Petal.Length', 'PC1'], yend = mean(Petal.Width) + iris_pca$rotation['Petal.Width', 'PC1']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed"), size = 2) +
+  coord_fixed(ratio = 1)
+```
+
 Using a bit of trigonometry, we can find the corresponding angle:
 ```{r}
-angle = 180 / pi * atan(iris_pca$rotation['Petal.Width', 'PC1'] / iris_pca$rotation['Petal.Length', 'PC1'])
+optimal_angle = 180 / pi * atan(iris_pca$rotation['Petal.Width', 'PC1'] / iris_pca$rotation['Petal.Length', 'PC1'])
 
-angle
+optimal_angle
 ```
 
 ```{r}
-angle = angle
+angle = optimal_angle
 
+# For graphing purposes, we need to know the slope of this line
 slope = sin(angle * pi / 180) / cos(angle * pi / 180)
 
+# A bit of linear algebra to find the projections
 iris_projection <- iris %>% 
     as_tibble() %>% 
     mutate(projection = (Petal.Length - mean(iris$Petal.Length)) * cos(angle * pi / 180)  + (Petal.Width - mean(iris$Petal.Width)) * sin(angle * pi / 180),
            proj_x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), proj_y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180))
 
 iris_projection %>% 
-    ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-    geom_point() +
+    ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
     geom_abline(slope = slope, intercept = mean(iris$Petal.Width) - slope*mean(iris$Petal.Length)) +
     geom_segment(aes(x = Petal.Length, y = Petal.Width, xend = proj_x, yend = proj_y)) +
+    geom_point(shape = 21, color = 'black', size = 2) +
     coord_fixed(ratio = 1)
 ```
 Let's see what the reconstruction error is:
@@ -156,57 +173,63 @@ And the amount of variance captured:
 
 The interesting thing is that this angle optimizes both quantities!
 
-
 ```{r}
-iris_projection %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-  geom_point() +
-  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC1'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC1']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed")) +
-  coord_fixed(ratio = 1)
+find_error <- function(angle){
+  iris_projection <- iris %>%
+    mutate(projection = (Petal.Length - mean(iris$Petal.Length)) * cos(angle * pi / 180)  + (Petal.Width - mean(iris$Petal.Width)) * sin(angle * pi / 180),
+           proj_x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), proj_y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180)) %>% 
+    summarize(avg_error = mean(sqrt((Petal.Length - proj_x)^2 + (Petal.Width - proj_y)^2)))
+  
+  return(iris_projection[1,1])
+}
+
+find_variance <- function(angle){
+  iris_projection <- iris %>%
+    mutate(projection = (Petal.Length - mean(iris$Petal.Length)) * cos(angle * pi / 180)  + (Petal.Width - mean(iris$Petal.Width)) * sin(angle * pi / 180),
+           proj_x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), proj_y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180))
+  
+  return(100 * var(iris_projection$projection) / (var(iris$Petal.Length) + var(iris$Petal.Width)))
+}
 ```
 
-
-Our new variables are constructed are given by 
-$$ 0.92177 \cdot (Petal.Length - mean(Petal.Length)) + 0.3877188 \cdot (Petal.Width - mean(Petal.Width))$$
-
-To get the angle for this projection, we can do some trigonometry:
 ```{r}
-first_component <- iris_pca$rotation[,'PC1']
-
-angle = atan(first_component['Petal.Width'] / first_component['Petal.Length']) * 180 / pi
-
-angle
+metrics <- tibble(angles = seq(from = 0, to = 45, by = 0.1)) %>% 
+  mutate(error = sapply(angles, find_error)) %>% 
+  mutate(variance = sapply(angles, find_variance))
 ```
 
-And we can visualize the projection:
 ```{r}
-slope = sin(angle * pi / 180) / cos(angle * pi / 180)
+coeff = 1 / 100
 
-iris_projection <- iris %>% 
-    as_tibble() %>% 
-    mutate(projection = (Petal.Length - mean(iris$Petal.Length)) * cos(angle * pi / 180)  + (Petal.Width - mean(iris$Petal.Width)) * sin(angle * pi / 180))
-
-iris_projection %>% 
-    ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-    geom_point() +
-    geom_abline(slope = slope, intercept = mean(iris$Petal.Width) - slope*mean(iris$Petal.Length)) +
-    geom_segment(aes(x = Petal.Length, y = Petal.Width, xend = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), yend = mean(iris$Petal.Width) + projection * sin(angle*pi / 180))) +
-    geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC1'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC1']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed")) +
-    coord_fixed(ratio = 1)
+metrics %>% 
+  ggplot(aes(x = angles)) +
+  geom_line(aes(y = error / coeff), color = 'red') + 
+  geom_line(aes(y = variance), color = 'blue') +
+  scale_y_continuous(name = "Variance",
+    sec.axis = sec_axis(~.*coeff, name = "Reconstruction Error")
+  ) +
+  labs(x = "Angle") + 
+  geom_vline(xintercept = angle, linetype = 'dashed') + 
+  theme(
+    axis.title.y = element_text(color = "blue"), 
+    axis.title.y.right = element_text(color = "red")
+  )
 ```
 
-The new variable represents the distance of the projection along this line.
+Recall that PC1 is the vector determining the optimal line.
 ```{r}
-iris_projection %>% 
-    ggplot(aes(x = Petal.Length, y = Petal.Width)) + 
-    geom_abline(slope = slope, intercept = mean(iris$Petal.Width) - slope*mean(iris$Petal.Length)) +
-    geom_point(aes(x = mean(iris$Petal.Length) + projection * cos(angle * pi / 180), y = mean(iris$Petal.Width) + projection * sin(angle*pi / 180), color = Species)) +
-    coord_fixed(ratio = 1)
+iris_pca$rotation
 ```
+
+A fact from linear algebra is that to project onto this line, we need only take the dot product of our original point with this vector. Since we are projecting onto the line that passes through the mean of each variable, we also need to subtract these means prior to projecting. The dot product will give us the distance along this line from the point determined by the two means. This projection is given by:
+$$0.9217777 \cdot (\text{Centered Petal.Length}) + 0.3877188 \cdot (\text{Centered Petal.Width})$$
+Observing this, we can interpret the projection as a "mix" of our old (centered) variables.
+
+The new variable represents the (signed) distance of the projection from the point determined by the two means.
 
 The projection values are contained in the x attribute. Here, we are interested in the PC1 column.
 ```{r}
-iris_pca$x
+head(iris_pca$x)
 ```
 
 Now, let's look at the summary:
@@ -235,10 +258,10 @@ var(iris_pca$x[,'PC1']) / (covar[1,1] + covar[2,2])
 What about PC2? First, let's plot it on our scatterplot.
 ```{r}
 iris_projection %>% 
-  ggplot(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
-  geom_point() +
-  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC1'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC1']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed")) +
-  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC2'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC2']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed")) +
+  ggplot(aes(x = Petal.Length, y = Petal.Width, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC1'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC1']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed"), size = 2) +
+  geom_segment(aes(x = mean(iris$Petal.Length), y = mean(iris$Petal.Width), xend = mean(iris$Petal.Length) + iris_pca$rotation['Petal.Length', 'PC2'], yend = mean(iris$Petal.Width) + iris_pca$rotation['Petal.Width', 'PC2']), color = 'black', arrow = arrow(ends = "last", length = unit(0.15, "inches"), type = "closed"), size = 2) +
   coord_fixed(ratio = 1)
 ```
 It turns out that this vector is perpendicular to PC1. Projecting along this vector will account for the remaining variance in our dataset.
@@ -249,8 +272,11 @@ We can use PC1 and PC2 as a new basis for the coordinate system.
 iris_pca$x %>% 
   as_tibble() %>% 
   add_column(Species = iris$Species) %>% 
-  ggplot(aes(x = PC1, y = PC2, color = Species)) + 
-  geom_point()
+  ggplot(aes(x = PC1, y = PC2, fill = Species)) + 
+  geom_hline(yintercept = 0, linetype = 'dashed') +
+  geom_vline(xintercept = 0, linetype = 'dashed') +
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
 ```
 
 One nice property about PCA is that our new variables are uncorrelated:
@@ -259,68 +285,80 @@ iris_pca$x %>%
   cov()
 ```
 
+The original iris dataset contains 4 quantitative variables. Now, let's consider all of these variables. We can visualize the dataset using pairs of these variables.
 
-## Full Dataset
-
-Now, let's bring in the other two variables. In the full dataset, we have 4 quantitative variables. We have already seen how it is possible to condense our two variables into just a single variable. What if we want to 
-
-And another:
+For example, 
 ```{r}
 iris %>% 
-  ggplot(aes(x = Sepal.Length, y = Petal.Length, color = Species)) + geom_point()
+  ggplot(aes(x = Petal.Length, y = Sepal.Length, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
 ```
 
-By changing the pair of variables we chose, we get different views of the dataset. But did we choose the "best" pair of variables to understand our dataset. What if we had a few hundred variables? It would be time-consuming to try and sort through all possible pairs. Luckily, there is a tool that can be used to find the "best" 2D scatterplot for our data. The catch is that our axes may not consist of our original variables, but instead linear combinations of the original variables.
+Or another:
+```{r}
+iris %>% 
+  ggplot(aes(x = Petal.Length, y = Sepal.Width, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
+```
 
-We will be using the prcomp function from the stats library (which is automatically loaded). This function computes the principal components of our dataset. 
+By changing the pair of variables we chose, we get different views of the dataset. But did we choose the "best" pair of variables to understand our dataset. What if we had a few hundred variables? It would be time-consuming to try and sort through all possible pairs. 
 
-When doing PCA, you almost always want your variables to be on "equal footing". That is, you don't the variable with the highest variance to dominate the others. 
-
-When using the prcomp function, we can specify that we would like to center and scale our data.
+Luckily, we already have to tools needed to find the "best" 2D representation of our data - pca!
 
 ```{r}
-iris.pr <- prcomp(iris %>% select(-Species), center = TRUE, scale = TRUE)
-summary(iris.pr)
+iris_full_pca <- prcomp(iris %>% select(-Species))
+summary(iris_full_pca)
 ```
-
-The summary shows that the first pricipal component captures 72.96% of the variance in the dataset, and that the first two components combined capture 95.81%. This means that if we project our datset onto the plane generated by these two components, we will get a pretty good picture of the distribution of our datapoints (only missing out on about 4% of the variance).
+We get a similar summary as before. We can see that using just the first two principal components will let us capture 97.769% of the total variation in the dataset.
 
 Let's see what this projection looks like and how well we can distinguish the species.
 ```{r}
-iris_projection <- iris.pr$x %>% 
+iris_full_pca$x %>% 
   as_tibble() %>% 
-  cbind(iris$Species) %>% 
-  rename(Species = `iris$Species`)
-iris_projection %>% 
-  ggplot(aes(x = PC1, y = PC2, color = Species)) + geom_point()
+  mutate(Species = iris$Species) %>% 
+  ggplot(aes(x = PC1, y = PC2, fill = Species)) + 
+  geom_point(shape = 21, color = 'black', size = 2) +
+  coord_fixed(ratio = 1)
 ```
 
-To understand how much each original variable contributes to the principal components, we can inspect the rotation matrix. Important note: these contributions are with respect to the centered and scaled values of the original variables!
+To understand what what composes each of our new variables, we can look at the rotation attribute:
 ```{r}
-iris.pr$rotation
+iris_full_pca$rotation
 ```
 This says to find the projection onto the first prinicipal component, the formula is 
-$$0.5210659*(\text{Scaled Sepal.Length}) - 0.2693474*(\text{Scaled Sepal.Width}) + 0.5804131*(\text{Scaled Petal.Length}) + 0.5648565*(\text{Scaled Petal.Width})$$
-
-Lets confirm this by multiplying (matrix multiplication, which is done using %*%) the rotation matrix by the first row.
-```{r}
-iris_scaled = scale(iris[,1:4])
-iris_scaled[1,] %*% iris.pr$rotation
-```
-
-Compare to the projection values.
-```{r}
-iris_projection[1,]
-```
+$$0.36138659*(\text{Centered Sepal.Length}) - 0.08452251*(\text{Centered Sepal.Width}) + 0.85667061*(\text{Centered Petal.Length}) + 0.35828920*(\text{Centered Petal.Width})$$
 
 What we can see is that the first principal component is determined by an approximately equal mix of sepal length, petal length, and petal width.
 ```{r}
-tibble(coefficient = iris.pr$rotation[,1], variable = names(iris.pr$rotation[,1])) %>% 
-  ggplot(aes(x = variable, y = coefficient)) + geom_col() + coord_flip()
+tibble(coefficient = iris_full_pca$rotation[,1], variable = names(iris_full_pca$rotation[,1])) %>% 
+  ggplot(aes(x = variable, y = coefficient)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(title = "First Principal Component Coefficients")
 ```
 
-Whereas, the second pricipal component is mostly determined by the sepal width.
 ```{r}
-tibble(coefficient = iris.pr$rotation[,2], variable = names(iris.pr$rotation[,1])) %>% 
-  ggplot(aes(x = variable, y = coefficient)) + geom_col() + coord_flip()
+tibble(coefficient = iris_full_pca$rotation[,2], variable = names(iris_full_pca$rotation[,2])) %>% 
+  ggplot(aes(x = variable, y = coefficient)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(title = "Second Principal Component Coefficients")
+```
+
+One final note: If dealing with variables that are measures on vastly different scales, you should consider not just centering your variables prior to PCA but also scaling so that they have unit variance. This is an option for the prcomp function. This will change the results, but it will prevent one of the variables from dominating just because it is on a larger scale than the other variables.
+
+```{r}
+iris_pca_scaled <- iris %>% 
+  select(-Species) %>% 
+  prcomp(scale = TRUE)
+```
+
+```{r}
+summary(iris_pca_scaled)
+```
+
+```{r}
+iris_pca_scaled$rotation
 ```
