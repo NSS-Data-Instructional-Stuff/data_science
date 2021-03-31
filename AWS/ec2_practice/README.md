@@ -1,7 +1,7 @@
 # AWS EC2 Exercise
 In this exercise, you will get to practice interacting with an AWS ec2 instance using ssh and get to learn some new command line tools.
 
-1. Step 1 - Before you can connect you need to change the permissions on the key pair file that you will use to connect through ssh. This is done using the `chmod` command. Specifically, we will set the permissions level to 400, which is read permission and no other permission. To do this, navigate to the location of your `.pem` file and run
+1. Step 1 - Before you can connect you need to change the permissions on the key pair file that you will use to connect through ssh. This is done using the `chmod` command. Specifically, we will set the permissions level to 400, which is read permission and no other permissions. To do this, navigate to the location of your `.pem` file and run
 
 `chmod 400 mykeys.pem`
 
@@ -32,9 +32,9 @@ After installing, you'll need to exit and reconnect. This can be done by typing 
 
 `conda --v`
 
-5. After reconnecting, we need to install the libraries that you will need. I have set up an yml file containing the necessary packages and versions, but we need a way to get it from your local machine over to the ec2 instance. For this, we can use `scp`, the secure copy protocol. This looks like
+5. After reconnecting, we need to install the libraries that you will need. I have set up a yml file containing the necessary packages and versions, but we need a way to get it from your local machine over to the ec2 instance. For this, we can use `scp`, the secure copy protocol. **This step needs to be run on a new terminal instance on your local machine.** The command you need to run looks like
 
-`scp -i "mykeys.pem" <file to copy> <ec2 DNS>/filename`
+`scp -i "mykeys.pem" <file to copy> <ec2 DNS>:~/.`*
 
 6. Once you have copied the yml file over, create a conda environment using it.
 
