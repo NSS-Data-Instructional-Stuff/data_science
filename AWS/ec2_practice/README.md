@@ -1,7 +1,7 @@
 # AWS EC2 Exercise
 In this exercise, you will get to practice interacting with an AWS ec2 instance using ssh and get to learn some new command line tools.
 
-1. Step 1 - Before you can connect you need to change the permissions on the key pair file that you will use to connect through ssh. This is done using the `chmod` command. Specifically, we will set the permissions level to 400, which is read permission and no other permissions. To do this, navigate to the location of your `.pem` file and run
+1. Step 1 - Before you can connect you need to change the permissions on the key pair file that you will use to connect through ssh. This is done using the `chmod` command. Specifically, we will set the permissions level to 400, which is read permission and no other permissions. For more information about `chmod`, see [this page.](https://www.tutorialspoint.com/unix_commands/chmod.htm) To do this, navigate to the location of your `.pem` file and run
 
 `chmod 400 mykeys.pem`
 
