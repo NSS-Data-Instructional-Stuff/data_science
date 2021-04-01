@@ -15,7 +15,7 @@ Breaking down what this does, we are first pointing ssh to our private key file 
 
 The first time you do this, you will get a warning message that the authenticity of the host can't be established and will ask you to verify that you want to continue connecting.
 
-3. One you have successfully connected, we need to set up our instance in order to be able to use Python and the libraries we need. One way to do this is to install the miniconda distribution of Anaconda, which is a smaller version. We can then use our environment.yml file to install exactly what we will need.
+3. Once you have successfully connected, we need to set up our instance in order to be able to use Python and the libraries we need. One way to do this is to install the miniconda distribution of Anaconda, which is a smaller version. We can then use our environment.yml file to install exactly what we will need.
 To do this, since we are working from the command line on the remote machine, we can make use of `curl`, a command line tool for transferring data with urls. 
 
 To use curl, you can run 
