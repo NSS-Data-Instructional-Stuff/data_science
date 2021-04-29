@@ -28,13 +28,13 @@ Using your local machine, navigate to the miniconda downloads page (https://docs
 
 `bash mc.sh`
 
-After installing, you'll need to exit and reconnect. This can be done by typing `exit`, which will return you to your normal shell. Then you can reconnect using the same `ssh` call as above. One you reconnect, you can verify that conda was installed if you run the following command and don't get an error:
+After installing, you'll need to exit and reconnect. This can be done by typing `exit`, which will return you to your normal shell. Then you can reconnect using the same `ssh` call as above. Once you reconnect, you can verify that conda was installed if you run the following command and don't get an error:
 
 `conda --v`
 
 5. After reconnecting, we need to install the libraries that you will need. I have set up a yml file containing the necessary packages and versions, but we need a way to get it from your local machine over to the ec2 instance. For this, we can use `scp`, the secure copy protocol. **This step needs to be run on a new terminal instance on your local machine.** The command you need to run looks like
 
-`scp -i "mykeys.pem" <file to copy> <ec2 DNS>:~/.`*
+`scp -i "mykeys.pem" <file to copy> <ec2 DNS>:~/.`
 
 6. Once you have copied the yml file over, create a conda environment using it.
 
