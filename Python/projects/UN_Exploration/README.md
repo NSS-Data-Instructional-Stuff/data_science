@@ -22,12 +22,9 @@
 
 3.	In the first cell of your notebook, import the required packages with their customary aliases as follows:
 
-    `import pandas as pd` 
-    
-    `import numpy as np` 
-    
-    `import matplotlib.pyplot as plt` 
-    
+    `import pandas as pd`   
+    `import numpy as np`  
+    `import matplotlib.pyplot as plt`  
     `import seaborn as sns`
     
     Keep all imports in this cell at the top of your notebook.
@@ -70,7 +67,7 @@
 
 20. Determine the number of countries per continent. Create a bar chart showing this.
 
-21. Creat a seaborn boxplot showing GDP per capita in 2014 split out by continent. What do you notice?
+21. Create a seaborn boxplot showing GDP per capita in 2014 split out by continent. What do you notice?
 
 22. Read in internet_use.csv into a DataFrame called `internet_df`. You will most likely get an error message when doing this - figure out what is going wrong and fix it. Take a look at the first and last five rows and make any corrections to your `read_csv()` call to fix this. Again, **do not** modify the original datasets. 
 
@@ -85,7 +82,7 @@
 
 27.	Look at the first five rows of your new data frame to confirm it merged correctly. Also, check the last five rows to make sure the data is clean and as expected.
 
-28. Create a new DataFrame, named `gdp_and_internet_use_2014` by extracting data for the year 2014 from `gdp_and_internet_use`. What is the mean internet users percentage in 2014? How many countries have at least 90% internet users in 2014?
+28. Create a new DataFrame, named `gdp_and_internet_use_2014` by extracting data for the year 2014 from `gdp_and_internet_use`. How many countries have at least 90% internet users in 2014?
 
 29. Find the countries that had the top 3 largest GDP per capita figures for 2014. Create a seaborn FacetGrid showing the change in internet user percentage over time for these three countries. Each individual figure in the facet grid will represent a single country.  What trends do you notice?
 
