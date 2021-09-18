@@ -14,6 +14,6 @@
 
     b. Now, build a Poisson regression model with target variable the rate of burglaries and predictor variable the median income. (Don't forget to offset by the population).
 
-    c. Finally, try out a negative binomial model.
+    c. Finally, try out a negative binomial model. To get started with a negative binomial model, you can check out [this tutorial](https://timeseriesreasoning.com/contents/negative-binomial-regression-model/). 
 
-    d. How do these three models compare?
+    d. How do you models compare?
