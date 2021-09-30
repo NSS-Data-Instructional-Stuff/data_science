@@ -14,9 +14,11 @@
 
     b. Now, build a Poisson regression model with target variable the rate of burglaries and predictor variable the median income. (Don't forget to offset by the population).
 
-    c. Finally, try out a negative binomial model. To get started with a negative binomial model, you can check out [this tutorial](https://timeseriesreasoning.com/contents/negative-binomial-regression-model/). 
+    c. Finally, try out a negative binomial model. To get started with a negative binomial model, you can check out [this tutorial](https://timeseriesreasoning.com/contents/negative-binomial-regression-model/).
 
-    d. How do your models compare?
+    d. How do your models compare? Hint: the fit models have an AIC attribute.
+
+6. Prepare a short presentation (<10 minutes) of your findings.
 
 Additional Resources for Generalized Linear Models:
 * DataCamp - [Generalized Linear Models in Python](https://learn.datacamp.com/courses/generalized-linear-models-in-python)
