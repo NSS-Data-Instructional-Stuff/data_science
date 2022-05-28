@@ -7,9 +7,7 @@ In this exercise, you will get to practice interacting with an AWS ec2 instance 
 
 2. Next, you will connect to your ec2 instance using `ssh`, the secure shell protocol. What this will look like is 
 
-`ssh -i "mykeys.pem" -L 8888:localhost:8888 <DNS>`
-
-The DNS will start with ubuntu@ec2 and will be with the other information I shared with you.
+`ssh -i "mykeys.pem" -L 8888:localhost:8888 ubuntu@<DNS>`
 
 Breaking down what this does, we are first pointing ssh to our private key file with the -i flag. The -L flag sets forwards the 8888 port on our local machine to the 8888 port on the localhost of the ec2 instance. The purpose of this is to allow us to connect to a jupyter notebook running on the ec2 instance. Finally, we need to specify the DNS of the ec2 instance we are connecting to.
 
