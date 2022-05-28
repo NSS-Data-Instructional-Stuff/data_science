@@ -2,7 +2,7 @@ name: ds_env
 dependencies:
   - python=3.9
   - jupyter=1.0.0
-  - matplotlib=3.3.4
-  - pandas=1.2.3
-  - fsspec=0.8.7
-  - s3fs=0.5.2
+  - matplotlib=3.5.1
+  - pandas=1.4.2
+  - s3fs=2022.1.0
+  - boto3=1.20.24

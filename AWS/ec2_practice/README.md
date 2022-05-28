@@ -1,6 +1,10 @@
 # AWS EC2 Exercise
 In this exercise, you will get to practice interacting with an AWS ec2 instance using ssh and get to learn some new command line tools.
 
+**Note:** Before doing this exercise, you'll want to make sure that jupyter is not running on your computer. If it is and you cannot close it, you'll have the change the port numbers in step 2 below.
+
+**Note 2:** The installation steps need to be run only once per group.
+
 1. Step 1 - Before you can connect you need to change the permissions on the key pair file that you will use to connect through ssh. This is done using the `chmod` command. Specifically, we will set the permissions level to 400, which is read permission and no other permissions. For more information about `chmod`, see [this page.](https://www.tutorialspoint.com/unix_commands/chmod.htm) To do this, navigate to the location of your `.pem` file and run
 
 `chmod 400 mykeys.pem`
@@ -32,7 +36,7 @@ After installing, you'll need to exit and reconnect. This can be done by typing 
 
 5. After reconnecting, we need to install the libraries that you will need. I have set up a yml file containing the necessary packages and versions, but we need a way to get it from your local machine over to the ec2 instance. For this, we can use `scp`, the secure copy protocol. **This step needs to be run on a new terminal instance on your local machine.** The command you need to run looks like
 
-`scp -i "mykeys.pem" <file to copy> <ec2 DNS>:~/.`
+`scp -i "mykeys.pem" <file to copy> ubuntu@<DNS>:~/.`
 
 6. Once you have copied the yml file over, create a conda environment using it.
 
@@ -52,6 +56,6 @@ and giving the access key id and secret access key that I shared with you.
 
 8. We are finally ready to work in jupyter. Make sure that you have activated the environment that you installed and then launch jupyter. Open your browser (on your local machine) and navigate to the url displayed.
 
-9. There is a file that is contained in the `nss-ds4` bucket on `s3` at the address `s3://nss-ds4/data/Metro_Credit_Card_Transactions.csv`. Read this file into a pandas dataframe. Once you have done this, find the top 4 merchants by total `Transaction Amount` for the metro police deparment. Create some kind of visualization for this and export your result to a `png` file with your group's name in the file name.
+9. There is a file that is contained in the `nss-ds5` bucket on `s3` at the address `s3://nss-ds5/data/Metro_Credit_Card_Transactions.csv`. Read this file into a pandas dataframe. (To get the file to your ec2 instance, you can use the AWS cli, boto3, or just use `read_csv` and point to the file, which is possible by using the `s3fs` library.) Once you have done this, find the top 4 merchants by total `Transaction Amount` for the metro police deparment. Create some kind of visualization for this and export your result to a `png` file with your group's name in the file name.
 
-10. Finally, exit jupyter and make use of the AWS cli to copy your png file to the `nss-ds4` bucket into the `images` folder. See https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html if you need help with this.
+10. Finally, exit jupyter and make use of the AWS cli to copy your png file to the `nss-ds5` bucket into the `images` folder. See https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html if you need help with this.
