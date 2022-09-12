@@ -69,7 +69,7 @@ In this project, you'll be doing some exploratory analysis on two country-level 
 
 27. Create a scatter plot of Life Expectancy vs GDP per Capita for the year 2019. What do you notice?
 
-28. Find the correlation between GDP per Capita and GDP per Capita for the year 2019. What is the meaning of this number?
+28. Find the correlation between Life Expectancy and GDP per Capita for the year 2019. What is the meaning of this number?
 
 29. Add a column to `gdp_le_2019` and calculate the logarithm of GDP per capita. Find the correlation between the log of GDP per capita and life expectancy. How does this compare to the calculation in the previous part? Look at a scatter plot to see if the result of this calculation makes sense.
 
