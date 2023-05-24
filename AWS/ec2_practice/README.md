@@ -30,7 +30,11 @@ Using your local machine, navigate to the miniconda downloads page (https://docs
 
 `bash mc.sh`
 
-After installing, you'll need to exit and reconnect. This can be done by typing `exit`, which will return you to your normal shell. Then you can reconnect using the same `ssh` call as above. Once you reconnect, you can verify that conda was installed if you run the following command and don't get an error:
+After installing, the conda command will not yet be recognized. You have two options. First, you can exit and reconnect. This can be done by typing `exit`, which will return you to your normal shell. Then you can reconnect using the same `ssh` call as above. 
+
+Your other option is to use `source .bashrc`, which will execute the content of the .bashrc file, which contains configuration information for the terminal session, including where to find the conda program.
+
+After whichever route you take, uou can verify that conda was installed if you run the following command and don't get an error:
 
 `conda --v`
 
