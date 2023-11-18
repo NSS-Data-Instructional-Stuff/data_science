@@ -45,7 +45,7 @@ Create a new R Notebook to complete this exercise.
 
 21. Create a new DataFrame, named `gdp_le_2019` by extracting data for the year 2019 from `gdp_le`. How many countries have a life expectancy of at least 80 in 2019?
 
-22. Find the countries that had the top 3 largest GDP per capita figures for 2019. Create a [seaborn FacetGrid](https://seaborn.pydata.org/generated/seaborn.FacetGrid.html) showing the change in life expectancy over time for these three countries. Each individual figure in the facet grid will represent a single country.
+22. Find the countries that had the top 3 largest GDP per capita figures for 2019. Create a plot showing the change in life expectancy over time for these three countries. This plot should be faceted so that each country is contained in its own figure.
 
 23. Create a scatter plot of Life Expectancy vs GDP per Capita for the year 2019. What do you notice?
 
