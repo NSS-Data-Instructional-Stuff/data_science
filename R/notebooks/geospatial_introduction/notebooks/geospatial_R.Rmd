@@ -1,0 +1,121 @@
+---
+title: "Working with Geospatial Data in R"
+output: html_notebook
+---
+
+```{r}
+library(sf)
+library(tidyverse)
+```
+
+```{r}
+zipcodes <- st_read('../data/zipcodes.geojson')
+```
+
+We can create plots out of our geospatial data using ggplot. 
+```{r}
+zipcodes |> 
+  ggplot() +
+  geom_sf()
+```
+
+We can adjust the color using the fill aesthethic.
+```{r}
+zipcodes |> 
+  ggplot() +
+  geom_sf(aes(fill = poname))
+```
+
+```{r}
+bus_stops <- read_csv("../data/WeGo_Transit_Bus_Stops_20231025.csv")
+```
+
+Let's extract the latitude and longitude using the str_extract function from stringr.
+```{r}
+bus_stops <- bus_stops |> 
+  mutate(latitude = as.numeric(str_extract(`Mapped Location`, "\\((.+),", group = 1)),
+            longitude = as.numeric(str_extract(`Mapped Location`, ",(.+)\\)", group = 1))
+            )
+```
+
+```{r}
+zipcodes |> 
+  ggplot() +
+  geom_sf() +
+  geom_point(data = bus_stops |> drop_na(latitude),
+             aes(x = longitude, y = latitude),
+             size = 0.1)
+```
+
+If we want to be able to perform geospatial operations on our bus stops, we need to convert it into a geospatial object. We can do this using the st_as_sf function.
+```{r}
+bus_stops_geo <- st_as_sf(bus_stops |> drop_na(latitude),
+         coords = c('longitude', 'latitude'),
+         crs = st_crs(zipcodes)
+         )
+```
+
+```{r}
+zipcodes |> 
+  ggplot() +
+  geom_sf() +
+  geom_sf(data = bus_stops_geo, size = 0.1)
+```
+
+If we want to perform spatial joins, the sf library has an st_join function. We need to specify how to join (contains, intersects, etc.). Here, we'll use containment.
+
+```{r}
+bus_zips <- st_join(bus_stops_geo, zipcodes, join = st_within)
+```
+
+Notice that bus_zips retains the geometry of bus_stops, as this was the first dataframe we provided.
+Now, we can, for example, count the number of stops per zipcode. Note that when performing calculations on an sf object, it is usually quicker if you drop the geometry first.
+```{r}
+bus_zips |> 
+  st_drop_geometry() |> 
+  group_by(zipcode) |> 
+  count(name = "num_stops") |> 
+  arrange(desc(num_stops))
+```
+
+Now, we can plot the bus stops contained in a given zipcode.
+```{r}
+zip = 37207
+
+zipcodes |> 
+  filter(zipcode == zip) |> 
+  ggplot() +
+  geom_sf() +
+  geom_sf(data = bus_zips |> filter(zipcode == zip),
+          aes(color = `Route Name`))
+```
+
+Finally, if we want to make an interactive map, we can use the leaflet library (https://rstudio.github.io/leaflet/).
+```{r}
+library(leaflet)
+```
+
+```{r}
+leaflet(data = bus_stops |> 
+          drop_na(latitude) |> 
+          filter(`Route Name` == "WEST END - WHITE BRIDGE")
+        ) |>  
+  addTiles() |> 
+  addMarkers(~longitude, 
+             ~latitude, 
+             popup = ~as.character(`Stop Name`), 
+             label = ~as.character(`Stop Name`)
+             )
+```
+
+You can also do marker clusters.
+```{r}
+leaflet(bus_stops |> drop_na(longitude)) %>% 
+  addTiles() %>% 
+  addMarkers(
+    ~longitude,
+    ~latitude,
+    clusterOptions = markerClusterOptions()
+  )
+```
+
