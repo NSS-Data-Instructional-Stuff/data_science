@@ -1,0 +1,185 @@
+---
+title: "Regression in R"
+output: html_notebook
+---
+
+In this notebooks, we'll see how to build regression models in R. 
+
+```{r}
+library(tidyverse)
+```
+
+
+We'll start with the penguins dataset.
+```{r}
+penguins <- read_csv("../data/penguins.csv")
+```
+
+To build a linear regression model, you can use the lm function. We need to give a formula in the form of target ~ predictors and specify the dataset. Calling this function both creates and fits the model.
+
+```{r}
+penguins_lm <- lm("body_mass_g ~ flipper_length_mm", data = penguins)
+```
+
+Once fit, we can inspect the results using the summary function. 
+```{r}
+summary(penguins_lm)
+```
+
+If we need, we can extract the coefficients (as a named vector) using the coef function.
+```{r}
+coef(penguins_lm)
+```
+
+If we want to get estimates out of our model, we can use the predict function and specify the new data.
+```{r}
+predict(
+  penguins_lm, 
+  newdata = head(penguins)
+  )
+```
+
+If we want a confidence or prediction interval around the estimate, we can specify that.
+```{r}
+predict(
+  penguins_lm, 
+  newdata = head(penguins),
+  interval = 'confidence'
+  )
+```
+
+```{r}
+est_df <- tibble(
+  flipper_length_mm = seq(from = min(penguins$flipper_length_mm, na.rm = TRUE), 
+                          to = max(penguins$flipper_length_mm, na.rm = TRUE), 
+                          length.out = 100)
+    )
+
+est_df <- est_df |> 
+  bind_cols(predict(penguins_lm, newdata = est_df, interval = "confidence")) |> 
+  rename(lwr_ci = lwr, upr_ci = upr) |> 
+  bind_cols(predict(penguins_lm, newdata = est_df, interval = "prediction") |> 
+              as_tibble() |> 
+              select(lwr_pi = lwr, upr_pi = upr)
+            )
+
+penguins |> 
+  drop_na(flipper_length_mm, body_mass_g) |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  geom_line(data = est_df, aes(x = flipper_length_mm, y = fit)) +
+  geom_ribbon(data = est_df, aes(x = flipper_length_mm,
+                                 y = fit,
+                                 ymin = lwr_ci,
+                                 ymax = upr_ci), alpha = 0.5) +
+  geom_line(data = est_df, aes(x = flipper_length_mm, y = lwr_pi), linetype = 'dashed') +
+  geom_line(data = est_df, aes(x = flipper_length_mm, y = upr_pi), linetype = 'dashed')
+```
+
+
+If we want to check for statistical significance, we can use the anova function. 
+```{r}
+reduced_model <- lm("body_mass_g ~ flipper_length_mm", data = penguins)
+full_model <- lm("body_mass_g ~ flipper_length_mm + species", data = penguins)
+
+anova(reduced_model, full_model)
+```
+
+## Logistic Regression
+
+```{r}
+field_goals <- read_csv("../data/fg.csv")
+```
+
+To fit a logistic regression model, we need to use the glm function.
+```{r}
+fg_lm <- glm("target ~ distance", data = field_goals, family = "binomial")
+```
+
+Similar to the linear regression model above, we can look at the summary. 
+```{r}
+summary(fg_lm)
+```
+
+Note that the predict function will return the log-odds by default.
+```{r}
+predict(fg_lm, newdata = head(field_goals))
+```
+
+This can be changed by specifying the prediction type.
+```{r}
+predict(fg_lm, newdata = head(field_goals), type = "response")
+```
+
+## Poisson Regression
+```{r}
+doctor_visits <- read_csv("../data/doctor_visits.csv")
+```
+
+```{r}
+doctor_visits <- doctor_visits |> 
+  mutate(age = 100*age)
+```
+
+```{r}
+pr_hosp <- glm('visits ~ age',
+               data = doctor_visits,
+               family = "poisson")
+```
+
+```{r}
+summary(pr_hosp)
+```
+
+
+```{r}
+est_df <- tibble(
+  age = seq(from = min(doctor_visits$age, na.rm = TRUE), 
+                          to = max(doctor_visits$age, na.rm = TRUE), 
+                          length.out = 100)
+    )
+
+est_df <- est_df |> 
+  bind_cols(predict(pr_hosp, newdata = est_df, type = "response")) |> 
+  rename("Estimated Mean Number of Visits" = "...2")
+            
+est_df |> 
+  ggplot(aes(x = age, y = `Estimated Mean Number of Visits`)) +
+  geom_line()
+           
+```
+
+
+```{r}
+mlb <- read_csv("../data/mlb_2021.csv") |> 
+  rename(runs = R, games = G)
+```
+
+```{r}
+pr_mlb <- glm("runs ~ OBP",
+              data = mlb,
+              family = "poisson",
+              offset = log(games))
+```
+
+```{r}
+summary(pr_mlb)
+```
+
+```{r}
+est_df <- tibble(
+  OBP = seq(from = min(mlb$OBP, na.rm = TRUE), 
+                          to = max(mlb$OBP, na.rm = TRUE), 
+                          length.out = 100),
+  games = 1
+    )
+
+est_df <- est_df |> 
+  bind_cols(predict(pr_mlb, newdata = est_df, type = "response")) |> 
+  rename("Estimated Mean Runs Per Game" = "...3")
+
+mlb |> 
+  ggplot(aes(x = OBP, y = `R/G`)) +
+  geom_point() +
+  geom_line(data = est_df, aes(x = OBP, y = `Estimated Mean Runs Per Game`))
+```
