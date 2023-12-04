@@ -1,0 +1,135 @@
+---
+title: "Loops and Functions Examples"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+Basic for loop:
+```{r}
+for (letter in c("a", "b", "c")){
+  print(letter)
+}
+```
+
+For loop with sequence of numbers:
+```{r}
+for (i in 5:8) {
+  print(i)
+}
+```
+
+A basic use of map:
+```{r}
+map(c(-1, 12, 0), abs)
+```
+
+Specifying the output type:
+```{r}
+map_dbl(c(-1, 12, 0), abs)
+```
+
+Mapping with a dataframe:
+```{r}
+penguins <- read_csv("../data/penguins.csv")
+```
+
+```{r}
+map_int(penguins, n_distinct)
+```
+
+With an anonymous function:
+```{r}
+map_int(penguins, \(x) sum(is.na(x)))
+```
+
+Or using a tilde:
+```{r}
+map_int(penguins, ~sum(is.na(.)))
+```
+
+A basic function:
+```{r}
+square <- function(x){
+  x^2
+}
+```
+
+```{r}
+square(10)
+```
+
+A more complicated function:
+```{r}
+collatz <- function(n){
+  if (n %% 2 == 0){
+    n / 2
+  }
+  else {
+    3*n + 1
+  }
+}
+```
+
+```{r}
+collatz(10)
+```
+
+```{r}
+collatz(13)
+```
+
+Syntax for a for loop and the equivalent of an f-string.
+```{r}
+starting_value = 13
+num_iter = 0
+
+n <- starting_value
+while (n != 1){
+  n <- collatz(n)
+  num_iter = num_iter + 1
+}
+
+print(glue::glue("{starting_value} required {num_iter} iterations to reach 1."))
+```
+
+Functions with tidyverse verbs. The incorrect way:
+```{r}
+find_mean <- function(summary_variable){
+  penguins |> 
+    summarize(mean(summary_variable, na.rm = TRUE))
+}
+```
+
+```{r}
+find_mean(bill_length_mm)
+```
+
+The correct way - embracing the variable:
+```{r}
+find_mean <- function(summary_variable){
+  penguins |> 
+    summarize(mean({{ summary_variable }}, na.rm = TRUE))
+}
+```
+
+```{r}
+find_mean(bill_length_mm)
+```
+
+Or, if we wanted to make a nicer column name:
+```{r}
+find_mean <- function(summary_variable){
+
+  penguins |> 
+    summarize("mean_{{ summary_variable }}" := mean({{ summary_variable }}, na.rm = TRUE))
+}
+```
+
+```{r}
+find_mean(bill_length_mm)
+```
+
