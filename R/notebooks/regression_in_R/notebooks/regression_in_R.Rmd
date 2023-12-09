@@ -44,7 +44,7 @@ If we want a confidence or prediction interval around the estimate, we can speci
 predict(
   penguins_lm, 
   newdata = head(penguins),
-  interval = 'confidence'
+  interval = 'confidence'  # can also do prediction interval
   )
 ```
 
@@ -85,6 +85,15 @@ full_model <- lm("body_mass_g ~ flipper_length_mm + species", data = penguins)
 anova(reduced_model, full_model)
 ```
 
+In R, we can specify interaction terms the same as we did in Python.
+
+```{r}
+penguins_lm_interactions <- lm("body_mass_g ~ flipper_length_mm*species", 
+                               data = penguins)
+
+summary(penguins_lm_interactions)
+```
+
 ## Logistic Regression
 
 ```{r}
@@ -93,7 +102,9 @@ field_goals <- read_csv("../data/fg.csv")
 
 To fit a logistic regression model, we need to use the glm function.
 ```{r}
-fg_lm <- glm("target ~ distance", data = field_goals, family = "binomial")
+fg_lm <- glm("target ~ distance", 
+             data = field_goals, 
+             family = binomial)
 ```
 
 Similar to the linear regression model above, we can look at the summary. 
@@ -111,6 +122,23 @@ This can be changed by specifying the prediction type.
 predict(fg_lm, newdata = head(field_goals), type = "response")
 ```
 
+```{r}
+tibble(
+  distance = seq(from = min(field_goals$distance),
+                 to = max(field_goals$distance),
+                 length.out = 100
+                 ),
+  estimate = predict(fg_lm,
+                     newdata = tibble(distance = seq(from = min(field_goals$distance),
+                 to = max(field_goals$distance),
+                 length.out = 100
+                 )),
+                 type = "response")
+) |> 
+  ggplot(aes(x = distance, y = estimate)) +
+  geom_line()
+```
+
 ## Poisson Regression
 ```{r}
 doctor_visits <- read_csv("../data/doctor_visits.csv")
@@ -124,7 +152,7 @@ doctor_visits <- doctor_visits |>
 ```{r}
 pr_hosp <- glm('visits ~ age',
                data = doctor_visits,
-               family = "poisson")
+               family = poisson)
 ```
 
 ```{r}
@@ -158,7 +186,7 @@ mlb <- read_csv("../data/mlb_2021.csv") |>
 ```{r}
 pr_mlb <- glm("runs ~ OBP",
               data = mlb,
-              family = "poisson",
+              family = poisson,
               offset = log(games))
 ```
 
