@@ -144,9 +144,61 @@ tibble(
 doctor_visits <- read_csv("../data/doctor_visits.csv")
 ```
 
+Let's first look at the visits column, the column of interest.
+We can see that overall, it is right-skewed with a large number of zeros.
+```{r}
+doctor_visits |> 
+  ggplot(aes(x = visits)) + 
+  geom_bar()
+```
+
+We could start with a constant-only model.
+```{r}
+pr_hosp_const <- glm('visits ~ 1',
+               data = doctor_visits,
+               family = poisson)
+summary(pr_hosp_const)
+```
+
+Let's see what it estimates for the mean number of the distribution:
+```{r}
+mu = exp(coef(pr_hosp_const))
+```
+
+And plot the result.
+```{r}
+x <- 0:5
+y <- dpois(x, lambda = mu)
+
+tibble(x = x, y = y) |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_col()
+```
+
+It looks like it does okay, but could we do better by including another covariate? We'll use age.
 ```{r}
 doctor_visits <- doctor_visits |> 
   mutate(age = 100*age)
+```
+
+If we want to see how the average number of visits per age, we could use the ntile function, which will divide our data into equal-sized groups.
+```{r}
+doctor_visits |> 
+  mutate(group = ntile(age, n = 5)) |> 
+  group_by(group) |> 
+  summarize(
+    mean_age = mean(age),
+    mean_visits = mean(visits)
+    )
+```
+
+```{r}
+doctor_visits |> 
+  mutate(group = ntile(age, n = 5)) |> 
+  group_by(group) |> 
+  ggplot(aes(x = visits)) +
+  geom_bar() +
+  facet_wrap(~group)
 ```
 
 ```{r}
@@ -158,7 +210,6 @@ pr_hosp <- glm('visits ~ age',
 ```{r}
 summary(pr_hosp)
 ```
-
 
 ```{r}
 est_df <- tibble(
@@ -177,7 +228,28 @@ est_df |>
            
 ```
 
+You can adjust the value of age to see how the estimated distribution changes
+```{r}
+age <- seq(from = 20, to = 70, by = 10)
+mu <- predict(pr_hosp, newdata = tibble(age = age), type = "response")
 
+map(age, 
+    \(x) tibble(age = x, 
+                visits = 0:5, 
+                probability = dpois(0:5, 
+                                    lambda = predict(pr_hosp, 
+                                                     newdata = tibble(age = x), 
+                                                     type = "response")
+                                    )
+                )
+    ) |> 
+  bind_rows() |> 
+  ggplot(aes(x = visits, y = probability)) +
+  geom_col() +
+  facet_wrap(~age)
+```
+
+Example 2: Including an offset term.
 ```{r}
 mlb <- read_csv("../data/mlb_2021.csv") |> 
   rename(runs = R, games = G)
