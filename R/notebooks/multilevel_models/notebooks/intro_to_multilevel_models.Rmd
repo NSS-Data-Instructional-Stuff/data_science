@@ -1,0 +1,115 @@
+---
+title: "Introduction to Multilevel Models"
+output: html_notebook
+---
+
+In this notebooks, we'll see how to work with multilevel models using the lme4 library. 
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+```
+
+The first example is going to be using student performace data. This section heavily borrows from [this set of notes](https://bookdown.org/ks6017/MLM_bookdown/chapter-1-nested-grouping-structure.html). 
+```{r}
+classroom <- read_csv("../data/classroom.csv")
+```
+
+Let's say we want to estimate the impact of socioeconomic status (ses) on math scores in kindergarten.
+
+```{r}
+classroom |> 
+  ggplot(aes(x = ses, y = mathkind)) +
+  geom_point()
+```
+
+We could start with a simple linear regression model:
+```{r}
+classroom_lm <- lm(mathkind ~ ses, data = classroom)
+
+summary(classroom_lm)
+```
+
+Question: What does this model tell us about the relationship between socioeconomic status and kindergarten math scores? 
+
+What might be wrong with this model? The standard errors (and p-values) are created assuming that the errors are independent. However, we have multiple observations within the same school. For these observations, the errors are likely to be correlated.
+
+One possibility is to add the schoolid as a predictor variable. This will add 106 new parameters to our model. Also, if our main interest is in the effect of socioeconomic status rather than school, we don't particulary care about the individual effects of each school but do want to adjust for the differences.
+
+A multilevel (or random effects) model allows us to account for this by assuming that the school-level effects follow a normal distribution with mean 0. To add this into our model, we add a term (1 | school) which says to fit an intercept term per school.
+
+```{r}
+classroom_mlm <- lmer(mathkind ~ ses + (1 | schoolid), data = classroom)
+
+summary(classroom_mlm)
+```
+
+This says that the between-school variance in mean kindergarten math scores is 309. This accounts for 309 / (309 + 1308) = 19% of the total variances. 
+It also says that after controlling for differences between schools, that a one-unit change in ses corresponds to a 10.722 increase in average kindergarten math scores.
+
+
+We can test whether the random effects are warranted using the rand function from the lmerTest package.
+```{r}
+rand(classroom_mlm)
+```
+
+In this case, there is some additional correlation that we have not yet considered. Within each school, students are grouped into classes. These classes are grouped within schools. The term for this is that we have a nested design. We can account for that in our model by using (1 | schoolid/classid).
+
+```{r}
+classroom_mlm_nest <- lmer(mathkind ~ ses + (1 | schoolid/classid), 
+                           data = classroom)
+
+summary(classroom_mlm_nest)
+```
+
+This slightly changes the estimate of the ses coefficient. This now says that 302/(302 + 20 + 1294) = 19% of the total variation is between schools, 20/(302 + 20 + 1294) is between classrooms within schools, and the remaining is at the student level within classrooms.
+
+```{r}
+rand(classroom_mlm_nest)
+```
+The test results suggest that we may not need the classroom-level terms.
+
+## Generalized Multilevel models
+
+We'll work with the field goals dataset.
+```{r}
+field_goals <- read_csv("../data/fg.csv")
+```
+
+First, let's remember how to build a regular logistic regression model.
+
+```{r}
+field_goals_log_reg <- glm(target ~ distance, 
+                           data = field_goals, 
+                           family = binomial)
+summary(field_goals_log_reg)
+```
+
+Our dataset contains multiple observations per kicker, and each kicker has a different number of kicks. We can account for this using a multilevel model and the glmer function.
+
+```{r}
+field_goals_mlm <- glmer(target ~ distance + (1|kicker), 
+                           data = field_goals, 
+                           family = binomial)
+summary(field_goals_mlm)
+```
+
+```{r}
+ranef(field_goals_mlm)$kicker |> 
+  arrange(`(Intercept)`)
+```
+
+```{r}
+field_goals |> 
+  mutate(quantile = ntile(distance, 10)) |> 
+  group_by(quantile, kicker == 'J.Tucker') |> 
+  summarize(mean(distance), mean(target), n())
+```
+
+Finally, we should check whether these random terms are statistically significant.
+```{r}
+library(lmtest)
+
+lrtest(field_goals_log_reg, field_goals_mlm)
+```
