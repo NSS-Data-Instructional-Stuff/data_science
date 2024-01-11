@@ -1,0 +1,47 @@
+---
+title: "Creating an .Rds File"
+output: html_notebook
+---
+
+This notebook demonstrates how to create a .Rds file from a tibble.
+
+```{r}
+library(tidyverse)
+```
+
+
+First, we'll read in and prepare our data.
+```{r}
+gdp <- read_csv("../data/gdp_per_capita.csv") |> 
+  select(-`Value Footnotes`) |> 
+  rename(
+    Country = `Country or Area`,
+    gdp_per_capita = Value
+    )
+
+life_expectancy <- read_csv("../data/life_expectancy.csv", skip = 4) |> 
+  rename(Country = `Country Name`) |> 
+  select(-c(`Country Code`, `Indicator Name`, `Indicator Code`, ...68)) |> 
+  pivot_longer(
+    cols = -Country,
+    names_to = "Year",
+    values_to = "life_expectancy"
+    ) |> 
+  mutate(Year = as.numeric(Year))
+
+continents <- read_csv("../data/continents.csv")
+```
+
+Then merge it all together.
+```{r}
+un_data <- continents |>
+  inner_join(gdp) |> 
+  inner_join(life_expectancy)
+```
+
+Finally, we'll write the result out to a .Rds file in the data folder for our app.
+```{r}
+un_data |> 
+  write_rds("../un_demo_app/data/un_data.Rds")
+```
+
