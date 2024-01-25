@@ -1,0 +1,160 @@
+---
+title: "R Common Plot Formatting Code"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+penguins <- read_csv("../data/penguins.csv")
+```
+
+
+## Adjusting Title and Labels
+
+An easy way to adjust the title and labels of a ggplot are to use the labs() function.
+This allows you to specify a title (using the title argument) and axes labels using the x and y arguments.
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    )
+```
+
+## Adjusting Ticks
+If you want to adjust the ticks, you can use the scale_[axis]_[variable type] functions.
+Let's say we wanted to customize the ticks on the x-axis. We could use the scale_x_continuous function:
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) +
+  scale_x_continuous(breaks = c(170, 190, 210, 230))
+```
+
+If you want to change the axis limits, you can do so using the limits argument:
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) +
+  scale_x_continuous(limits = c(150, 250))
+```
+
+To add commas to the ticks on the y-axis, we can use the scale_y_continuous function. Note that we need to load in the scales library for this to work.
+```{r}
+library(scales)
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) +
+  scale_y_continuous(labels = comma)
+```
+
+On the other hand, if my x variable is categorical, I need to use scale_x_discrete.
+For example, to rotate the axis labels, I can use the guide argument.
+```{r}
+penguins |> 
+  ggplot(aes(x = species, y = body_mass_g)) +
+  geom_boxplot() + 
+  labs(title = "Body Mass vs. Species",
+       y = "Body Mass (g)") +
+  scale_x_discrete(guide = guide_axis(angle = 90))
+```
+
+
+Let's say I want to lowercase the labels. In this case I can use an anonymous function as the labels argument to accomplish this.
+```{r}
+penguins |> 
+  ggplot(aes(x = species, y = body_mass_g)) +
+  geom_boxplot() + 
+  labs(title = "Body Mass vs. Species",
+       y = "Body Mass (g)") +
+  scale_x_discrete(labels = ~str_to_lower(.))
+```
+
+If you're working with money, you can also use the dollar_format function from the scales library.
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, body_mass_g)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) +
+  scale_y_continuous(labels = dollar_format())
+```
+
+## Customizing Colors
+To customize the colors on a plot, you can use the scale_color_[type] functions.
+For a categorical variable, you can use scale_color_manual to specify the colors to use.
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) + 
+  scale_color_manual(values = c("red", "blue", "orange"))
+```
+For a continuous colorscale, you could use the scale_color_distiller function and specify a palette.
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g, color = bill_length_mm)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) + 
+  scale_color_distiller(palette = "Blues")
+```
+
+If you want to adjust the legend name, you can use name argument of the scale_color function that you are using.
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g, color = bill_length_mm)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+    ) + 
+  scale_color_distiller(palette = "Blues", name = "Bill Length (mm)")
+```
+
+Alternatively, you could use the labs function to adjust the name:
+```{r}
+penguins |> 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g, color = bill_length_mm)) +
+  geom_point() +
+  labs(
+    title = "Body Mass vs. Flipper Length",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)",
+    color = "Bill Length (mm)"
+    ) + 
+  scale_color_distiller(palette = "Blues")
+```
+
+
+
