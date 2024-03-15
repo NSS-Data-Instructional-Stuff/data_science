@@ -28,4 +28,6 @@ Has been reduced to just the value for the next-to-last stop:
 
 3. Finally, the data you have been provided has an STARTING_ADHERENCE column, which contains the ADHERENCE at the beginning of the route. If you add this metric, does it improve the model? Is this of any practical use?
 
-**Bonus:** How well does a constant-only model perform compared to the models above?
+**Bonus Questions:** 
+* How well does a constant-only model perform compared to the models above?
+* For this exercise, you were provided data that was already prepared by condensing each trip into one row. Go back to the original dataset and perform the preparation, creating an ID column and keeping only the next-to-last ADHERENCE value.
